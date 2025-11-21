@@ -1,0 +1,61 @@
+networks:
+  observability_net:
+    driver: bridge
+
+services:
+  app:
+    image: secoweeedcodein/full_stack2_back:latest
+    container_name: eva_app
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/var/log/app
+    networks:
+      - observability_net
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: eva_prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    networks:
+      - observability_net
+
+  loki:
+    image: grafana/loki:2.8.2
+    container_name: eva_loki
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./loki/local-config.yaml:/etc/loki/local-config.yaml:ro
+    ports:
+      - "3100:3100"
+    networks:
+      - observability_net
+
+  promtail:
+    image: grafana/promtail:2.8.2
+    container_name: eva_promtail
+    command: -config.file=/etc/promtail/promtail-config.yml
+    volumes:
+      - ./promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      - ./logs:/var/log/app
+    networks:
+      - observability_net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: eva_grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    networks:
+      - observability_net
+
+volumes:
+  grafana-storage:
