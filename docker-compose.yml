@@ -32,6 +32,9 @@ services:
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
       - ./loki/local-config.yaml:/etc/loki/local-config.yaml:ro
+      - ./loki-data:/loki
+      - ./loki-wal:/wal
+      - ./loki-data/compactor:/loki/compactor
     ports:
       - "3100:3100"
     networks:
